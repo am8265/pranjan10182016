@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 #####Installing the DESeq package########
-source("https://bioconductor.org/biocLite.R")
-biocLite("DESeq")
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("DESeq")
 library("DESeq")
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
@@ -33,13 +33,16 @@ res.sig<-res[ res$padj < 0.1, ]
 if (is.na(res.sig[2:nrow(res.sig), ])) {#checking if ALL elements of the data frame is NA or not 
   print("res.sig is NA")
 }  else {
-    ####Significantly Downregulated genes#########
-    res.sig.dwnreg = res.sig[order(res.sig$foldChange, -res.sig$baseMean), ]
-    res.sig.dwnreg100 = res.sig.dwnreg[c(1:100), ]##Top 100 significantly Downregu  lated genes
+    res.sig.dwnreg = res.sig[res.sig$foldChange<1,]#Select only genes with fold change <1
+    #among the genes with fold change<1,order them from lowest value to highest (break a tie with higher gene expression across samples)
+    res.sig.dwnreg = res.sig.dwnreg[order(res.sig.dwnreg$foldChange, -res.sig.dwnreg$baseMean), ]
+    res.sig.dwnreg100 = res.sig.dwnreg[c(1:100), ]##Top 100 significantly Downregulated genes
+    #remove all NA values 
     res.sig.dwnreg100=res.sig.dwnreg100[complete.cases(res.sig.dwnreg100), ]
     dwnreg100 = rownames(res.sig.dwnreg100)
     ####Significantly Upregulated genes##########
-    res.sig.upreg = res.sig[order(- res.sig$foldChange, - res.sig$baseMean), ]
+    res.sig.upreg = res.sig[res.sig$foldChange>1,]
+    res.sig.upreg = res.sig.upreg[order(- res.sig.upreg$foldChange, - res.sig.upreg$baseMean), ]
     res.sig.upreg100 = res.sig.upreg[c(1:100), ]#Top 100 upregulated genes
     res.sig.upreg100=res.sig.upreg100[complete.cases(res.sig.upreg100), ]
     upreg100 = rownames(res.sig.upreg100)
@@ -53,26 +56,33 @@ if (is.na(res.sig[2:nrow(res.sig), ])) {#checking if ALL elements of the data fr
     library("RColorBrewer")
     library("gplots")
     hmcol = colorRampPalette(brewer.pal(9, "GnBu"))(100)
-    #####HeatMap for upregulated VSD genes#####
-    jpeg(fname.vsd.up.hmap)
-    heatmap.2(exprs(vsd.blind)[as.numeric(upreg100), ],col = hmcol, trace="none", margin=c(10, 6))
-    dev.off()
-    ######HeatMap for Downregulated VSD genes########
-    jpeg(fname.vsd.dwn.hmap)
-    heatmap.2(exprs(vsd.blind)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(10, 6))
-    dev.off()
-    #######Heatmap for upregulated NORMALIZED genes################
-    jpeg(fname.norm.up.hmap)
-    heatmap.2(counts(cds,normalized=TRUE)[as.numeric(upreg100), ],col = hmcol, trace="none", margin=c(10, 6))
-    dev.off()
+    if (nrow(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]))>=2 & ncol(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]))>=2) {
+      ######HeatMap for Upregulated VSD genes#####
+      jpeg(fname.vsd.up.hmap)
+      heatmap.2(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]),col = hmcol, trace="none", margin=c(10, 6))
+      dev.off()
+      #######Heatmap for upregulated NORMALIZED genes################
+      jpeg(fname.norm.up.hmap)
+      heatmap.2(counts(cds,normalized=TRUE)[as.numeric(upreg100), ],col = hmcol, trace="none", margin=c(10, 6))
+      dev.off()
+    }  else {
+         print("Due to Dimensionality problems we cannot produce a HeatMap!")
+    }
+    if (nrow(as.matrix(exprs(vsd.blind)[as.numeric(dwnreg100), ]))>=2 & ncol(as.matrix(exprs(vsd.blind)[as.numeric(dwnreg100), ]))>=2) {
+      ######HeatMap for Downregulated VSD genes########
+      jpeg(fname.vsd.dwn.hmap)
+      heatmap.2(exprs(vsd.blind)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(10, 6))
+      dev.off()
     ########Heatmap for downregulated Normalized genes############
-    jpeg(fname.norm.dwn.hmap)
-    heatmap.2(counts(cds,normalized=TRUE)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(10, 6))
-    dev.off()
-  }
+      jpeg(fname.norm.dwn.hmap)
+      heatmap.2(counts(cds,normalized=TRUE)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(10, 6))
+      dev.off()
+    } else {
+        print("Due to Dimensionality problems we cannot produce a HeatMap!")
+    }
   ########PCA plots based on VSD##############
-fname.vsd.pca = paste(pair1, pair2, "pca","jpg",sep=".")#change this line of code
-jpeg(fname.vsd.pca)
-print(plotPCA(vsd.blind,intgroup=c("condition")))
-dev.off()
-  
+  fname.vsd.pca = paste(pair1, pair2, "pca","jpg",sep=".")#change this line of code
+  jpeg(fname.vsd.pca)
+  print(plotPCA(vsd.blind,intgroup=c("condition")))
+  dev.off()
+}
