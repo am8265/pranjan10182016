@@ -1,9 +1,12 @@
 #!/usr/bin/env Rscript
+#####Installing the DESeq package########
+source("https://bioconductor.org/biocLite.R")
+biocLite("DESeq")
+library("DESeq")
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
   stop("At least one argument must be supplied (input file).n", call. = FALSE)
 }
-library("DESeq")
 item = args[1]
 sep.names<-strsplit(item,split="\\.")[[1]][c(1, 2)]#split a string into a character vector using the pattern
 ##works like a split function in python
