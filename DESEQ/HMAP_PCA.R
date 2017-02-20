@@ -74,24 +74,24 @@ if (is.na(res.sig[2:nrow(res.sig), ])) {#checking if ALL elements of the data fr
     hmcol = colorRampPalette(brewer.pal(9, "GnBu"))(100)
     if (nrow(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]))>=2 & ncol(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]))>=2) {
       ######HeatMap for Upregulated VSD genes#####
-      jpeg(fname.vsd.up.hmap)
-      heatmap.2(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]),col = hmcol, trace="none", margin=c(10, 6))
+      jpeg(fname.vsd.up.hmap, height=1000, width=1000)
+      heatmap.2(as.matrix(exprs(vsd.blind)[as.numeric(upreg100), ]),col = hmcol, trace="none", margin=c(6, 6),srtCol=15, offsetCol =-1.5,cexCol=1.1)
       dev.off()
       #######Heatmap for upregulated NORMALIZED genes################
-      jpeg(fname.norm.up.hmap)
-      heatmap.2(counts(cds,normalized=TRUE)[as.numeric(upreg100), ],col = hmcol, trace="none", margin=c(10, 6))
+      jpeg(fname.norm.up.hmap, height=1000, width=1000)
+      heatmap.2(counts(cds,normalized=TRUE)[as.numeric(upreg100), ],col = hmcol, trace="none", margin=c(6, 6),srtCol=15, offsetCol =-1.5,cexCol=1.1)
       dev.off()
     }  else {
          print("Due to Dimensionality problems we cannot produce a HeatMap!")
     }
     if (nrow(as.matrix(exprs(vsd.blind)[as.numeric(dwnreg100), ]))>=2 & ncol(as.matrix(exprs(vsd.blind)[as.numeric(dwnreg100), ]))>=2) {
       ######HeatMap for Downregulated VSD genes########
-      jpeg(fname.vsd.dwn.hmap)
-      heatmap.2(exprs(vsd.blind)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(10, 6))
+      jpeg(fname.vsd.dwn.hmap,height=1000, width=1000)
+      heatmap.2(exprs(vsd.blind)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(6, 6),srtCol=15, offsetCol =-1.5,cexCol=1.1)
       dev.off()
     ########Heatmap for downregulated Normalized genes############
-      jpeg(fname.norm.dwn.hmap)
-      heatmap.2(counts(cds,normalized=TRUE)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(10, 6))
+      jpeg(fname.norm.dwn.hmap, height=1000, width=1000)
+      heatmap.2(counts(cds,normalized=TRUE)[as.numeric(dwnreg100),],col = hmcol, trace="none", margin=c(6, 6),srtCol=15, offsetCol =-1.5,cexCol=1.1)
       dev.off()
     } else {
         print("Due to Dimensionality problems we cannot produce a HeatMap!")
