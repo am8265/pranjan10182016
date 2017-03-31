@@ -21,7 +21,7 @@ filePath<-getwd()
 file.list=list.files(pattern='*.csv')
 for (item in file.list){
   
-  countData<-as.matrix(read.csv(item,header = TRUE,row.names = 1))
+  countData<-as.matrix(read.csv(file.path(filePath,item)),header = TRUE,row.names = 1)
   sep.names<-strsplit(item,split="\\.")[[1]][c(1, 2)]
   pair1<-sep.names[c(1)]
   pair2<-sep.names[c(2)]
