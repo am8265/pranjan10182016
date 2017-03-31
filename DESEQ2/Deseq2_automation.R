@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 #####loading the dependencies########
 library(BiocStyle)
 library(rmarkdown)
@@ -20,8 +21,7 @@ setwd("/Users/ayanmalakar/pranjan10182016/DESEQ2")
 filePath<-getwd()
 file.list=list.files(pattern='*.csv')
 for (item in file.list){
-  
-  countData<-as.matrix(read.csv(file.path(filePath,item)),header = TRUE,row.names = 1)
+  countData<-as.matrix(read.csv(file.path(filePath,item),header = TRUE,row.names = 1))
   sep.names<-strsplit(item,split="\\.")[[1]][c(1, 2)]
   pair1<-sep.names[c(1)]
   pair2<-sep.names[c(2)]
@@ -50,7 +50,7 @@ for (item in file.list){
   dev.off()
   #####PCAplot for identifying outliers#####
   png(paste(pair1,pair2,"pca","top500.png",sep="."),height= 5*300, width = 5*300, res=300, pointsize = 8)
-  plotPCA(rld, intgroup=c("condition"))
+  print(plotPCA(rld, intgroup=c("condition")))
   dev.off()
   #######A More Customised PCA plot#####################
   
@@ -102,15 +102,17 @@ for (item in file.list){
   dds_res<-results(dds, pAdjustMethod = "BH", alpha=0.05)
   summary(dds_res)
   sum(dds_res$padj<0.05, na.rm = TRUE)#No. of genes with significant DE
-  sum(dds_res$padj<0.05 & (dds_res05$log2FoldChange>=1 |dds_res05$log2FoldChange<=-1), na.rm = T)#No. of genes with significant DE and 
+  sum(dds_res$padj<0.05 & (dds_res$log2FoldChange>=1 |dds_res$log2FoldChange<=-1), na.rm = T)#No. of genes with significant DE and 
   ###fold change of >=2 or <=0.5!
   saveRDS(dds_res,paste(pair1,pair2,"dds_res.rds",sep = "."))
   png(paste(pair1,pair2,"MAplot.png",sep="."),height= 5*300, width = 5*300, res=300, pointsize = 8)
   plotMA(dds_res, alpha=0.05, main=ifelse(pair1!="Ctl",paste(pair1,"vs.",pair2,sep=""),paste(pair2,"vs",pair1)))
   dev.off()
   dds_res<-dds_res[order(dds_res$padj),]
-  resSig05<-subset(dds_res, padj< 0.05 & log2FoldChange>=1|log2FoldChange<=-1)
-  write.csv(as.data.frame(resSig05), file=paste(pair1,pair2,"csv",sep="."))
+  resSig05.2fold<-subset(dds_res, padj< 0.05 & log2FoldChange>=1|log2FoldChange<=-1)
+  resSig05<-subset(dds_res, padj< 0.05 & log2FoldChange!=0)
+  write.csv(as.data.frame(resSig05.2fold), file=paste(pair1,pair2,"2fold","csv",sep="."))
+  write.csv(as.data.frame(resSig05), file=paste(pair1,pair2,"csv", sep = "."))
   #######Testing for DGE using Log Likelihood Ratio Test#######
   
   
