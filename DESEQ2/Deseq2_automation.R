@@ -20,7 +20,7 @@ library(org.Mm.eg.db)
 setwd("/Users/ayanmalakar/pranjan10182016/DESEQ2")
 filePath<-getwd()
 file.list=list.files(pattern='*.csv')
-for (item in file.list){
+for (item in file.list) {
   countData<-as.matrix(read.csv(file.path(filePath,item),header = TRUE,row.names = 1))
   sep.names<-strsplit(item,split="\\.")[[1]][c(1, 2)]
   pair1<-sep.names[c(1)]
@@ -34,7 +34,7 @@ for (item in file.list){
   }
   pair1.no<-length(pair1.occur[pair1.occur == TRUE])
   pair2.no<-ncol(countData) - pair1.no
-  colData<-data.frame(colnames(countData), condition=c(rep(pair1,pair1.no),rep(pair2,pair2.no)))
+  colData<-data.frame(colnames(countData), condition=factor(c(rep(pair1, pair1.no),rep(pair2,pair2.no))), row.names = 1)
   dds<-DESeqDataSetFromMatrix(countData = countData,colData = colData, design= ~ condition)
   dds<-dds[rowSums(counts(dds))>0,]#pre-filtering for genes with atleast 1 non-zero count
   dds<-DESeqDataSetFromMatrix(countData = countData,colData = colData, design= ~ condition)
@@ -96,23 +96,27 @@ for (item in file.list){
   #####Testing for DGE using nbinomWaldTest for less than 5% FDR...
   #####...independent filtering is automatically performed 
   dds<-nbinomWaldTest(dds)
-  if (pair1=="Ctl"){
-    dds_res<-results(dds, pAdjustMethod = "BH", contrast = c("condition",pair2, pair1), alpha = 0.05)
-  }
-  dds_res<-results(dds, pAdjustMethod = "BH", alpha=0.05)
+  if (pair2=="Ctl"){#<pair1.Ctl>
+    dds_res<-results(dds, pAdjustMethod = "BH", contrast = c("condition",pair1, pair2), alpha = 0.05)#pair 1 is the numer and pair 2 is denom
+    #pair1/pair2 or pair1 vs pair2
+    fname<-paste(pair1,pair2,sep="vs.")
+  } else {#eg. <Ctl.pair2>
+      dds_res<-results(dds, pAdjustMethod = "BH", contratst = c("condition",pair2, pair1), alpha = 0.05)#pair 1 is the denom. and pair 1 is num.
+      fname<-paste(pair2,pair1,sep = "vs.")
+    }#pair2/pair1 or pair2 vs pair1
   summary(dds_res)
   sum(dds_res$padj<0.05, na.rm = TRUE)#No. of genes with significant DE
   sum(dds_res$padj<0.05 & (dds_res$log2FoldChange>=1 |dds_res$log2FoldChange<=-1), na.rm = T)#No. of genes with significant DE and 
   ###fold change of >=2 or <=0.5!
   saveRDS(dds_res,paste(pair1,pair2,"dds_res.rds",sep = "."))
-  png(paste(pair1,pair2,"MAplot.png",sep="."),height= 5*300, width = 5*300, res=300, pointsize = 8)
+  png(paste(fname,"MAplot.png",sep="."),height= 5*300, width = 5*300, res=300, pointsize = 8)
   plotMA(dds_res, alpha=0.05, main=ifelse(pair1!="Ctl",paste(pair1,"vs.",pair2,sep=""),paste(pair2,"vs",pair1)))
   dev.off()
   dds_res<-dds_res[order(dds_res$padj),]
   resSig05.2fold<-subset(dds_res, padj< 0.05 & log2FoldChange>=1|log2FoldChange<=-1)
   resSig05<-subset(dds_res, padj< 0.05 & log2FoldChange!=0)
-  write.csv(as.data.frame(resSig05.2fold), file=paste(pair1,pair2,"2fold","csv",sep="."))
-  write.csv(as.data.frame(resSig05), file=paste(pair1,pair2,"csv", sep = "."))
+  write.csv(as.data.frame(resSig05.2fold), file=paste(fname,"2fold","csv",sep="."))
+  write.csv(as.data.frame(resSig05), file=paste(fname,"csv", sep = "."))
   #######Testing for DGE using Log Likelihood Ratio Test#######
   
   
